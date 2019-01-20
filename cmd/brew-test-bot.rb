@@ -660,7 +660,7 @@ module Homebrew
         unlink_formula = Formulary.factory(name)
         next unless unlink_formula.installed?
         next unless unlink_formula.linked_keg.exist?
-        test "brew", "unlink", "--force", name
+        test "brew", "unlink", name
       end
 
       installed = Utils.popen_read("brew", "list").split("\n")
@@ -1572,7 +1572,6 @@ module Homebrew
     end
 
     jenkins = !ENV["JENKINS_HOME"].nil?
-    ENV["CI"] = "1" if jenkins
     jenkins_pipeline_pr = jenkins && !ENV["CHANGE_URL"].nil?
     jenkins_pipeline_branch = jenkins &&
                               !jenkins_pipeline_pr &&
@@ -1583,7 +1582,6 @@ module Homebrew
     azure_pipelines = !ENV["TF_BUILD"].nil?
     if azure_pipelines
       ARGV << "--verbose" << "--ci-auto" << "--no-pull"
-      ENV["CI"] = "1"
       ENV["HOMEBREW_AZURE_PIPELINES"] = "1"
       ENV["HOMEBREW_COLOR"] = "1"
       # These cannot be queried at the macOS level on Azure Pipelines.
