@@ -1590,8 +1590,6 @@ module Homebrew
 
     travis_pr = ENV["TRAVIS_PULL_REQUEST"] &&
                 ENV["TRAVIS_PULL_REQUEST"] != "false"
-    circle_pr = ENV["CI_PULL_REQUEST"] &&
-                !ENV["CI_PULL_REQUEST"].empty?
     jenkins_pr = !ENV["ghprbPullLink"].nil?
     jenkins_pr ||= !ENV["ROOT_BUILD_CAUSE_GHPRBCAUSE"].nil?
     jenkins_pr ||= jenkins_pipeline_pr
