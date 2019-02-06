@@ -1515,7 +1515,6 @@ module Homebrew
         content_url = "https://api.bintray.com/content/#{bintray_org}"
         content_url +=
           "/#{bintray_repo}/#{bintray_package}/#{version}/#{filename.bintray}"
-        content_url += "?override=1" if ARGV.include? "--overwrite"
 
         if ARGV.include?("--dry-run")
           puts <<~EOS
