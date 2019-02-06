@@ -801,8 +801,7 @@ module Homebrew
       end
 
       test "brew", "install", "--only-dependencies", bottle_filename
-      install_args = *("--force-bottle" if @test_default_formula)
-      test "brew", "install", *install_args, bottle_filename
+      test "brew", "install", bottle_filename
     end
 
     def install_bottled_dependent(dependent)
