@@ -479,7 +479,7 @@ module Homebrew
       elsif @url
         unless ARGV.include?("--no-pull")
           diff_start_sha1 = current_sha1
-          test "brew", "pull", "--clean", *[@tap ? "--tap=#{@tap}" : nil, @url].compact
+          test "brew", "pull", "--clean", @url
           diff_end_sha1 = current_sha1
         end
         @short_url = @url.gsub("https://github.com/", "")
