@@ -135,9 +135,8 @@ module Homebrew
       end
     end
 
-    # Get tap from Jenkins UPSTREAM_GIT_URL, GIT_URL
-    # or Azure Pipelines BUILD_REPOSITORY_URI
-    # or CircleCI CIRCLE_REPOSITORY_URL.
+    # Get tap from Jenkins UPSTREAM_GIT_URL, GIT_URL or
+    # Circle CI's CIRCLE_REPOSITORY_URL.
     git_url =
       ENV["UPSTREAM_GIT_URL"] ||
       ENV["GIT_URL"] ||
