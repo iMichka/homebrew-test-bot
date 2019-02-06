@@ -374,7 +374,6 @@ module Homebrew
 
     def download
       @category = __method__
-
       @start_branch = Utils.popen_read(
         "git", "-C", @repository, "symbolic-ref", "HEAD"
       ).gsub("refs/heads/", "").strip
