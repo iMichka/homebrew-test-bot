@@ -1165,9 +1165,7 @@ module Homebrew
         reset_if_needed(@repository)
       end
 
-      # FIXME: I have no idea if this change is safe for Circle CI or not,
-      # so temporarily make it Mac-only until we can safely experiment.
-      Pathname.glob("*.bottle*.*").each(&:unlink) if OS.mac?
+      Pathname.glob("*.bottle*.*").each(&:unlink)
 
       # Cleanup NodeJS headers on Azure Pipeline
       if OS.linux? && ENV["TF_BUILD"]
