@@ -1415,7 +1415,7 @@ module Homebrew
          ENV["CIRCLE_PR_NUMBER"]
     if pr
       pull_pr = "#{tap.default_remote}/pull/#{pr}"
-      safe_system "brew", "pull", "--clean", *("--tap=#{tap}" if tap), pull_pr
+      safe_system "brew", "pull", "--clean", pull_pr
     end
 
     if ENV["UPSTREAM_BOTTLE_KEEP_OLD"] ||
