@@ -1515,7 +1515,6 @@ module Homebrew
         content_url = "https://api.bintray.com/content/#{bintray_org}"
         content_url +=
           "/#{bintray_repo}/#{bintray_package}/#{version}/#{filename.bintray}"
-
         if ARGV.include?("--dry-run")
           puts <<~EOS
             curl --user $HOMEBREW_BINTRAY_USER:$HOMEBREW_BINTRAY_KEY
