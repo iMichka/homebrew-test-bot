@@ -760,7 +760,7 @@ module Homebrew
       bottle_args << "--skip-relocation" if ARGV.include? "--skip-relocation"
       bottle_args << "--force-core-tap" if @test_default_formula
       bottle_args << "--root-url=#{root_url}" if root_url
-      bottle_args << "--or-later" if ARGV.include? "--or-later"
+      bottle_args << "--or-later" if ARGV.include?("--or-later")
       test "brew", "bottle", *bottle_args
 
       bottle_step = steps.last
