@@ -204,8 +204,6 @@ module Homebrew
         --force
         --retry
         --verbose
-        --build-bottle
-        --build-from-source
         --json
       ].freeze).join(" ")
         .gsub(HOMEBREW_PREFIX.to_s, "")
@@ -956,8 +954,6 @@ module Homebrew
           install_bottled_dependent(dependent)
         end
         cleanup_bottle_etc_var(formula)
-
-        test "brew", "uninstall", "--force", formula_name
       end
 
       if formula.devel &&
@@ -966,6 +962,8 @@ module Homebrew
          !ARGV.include?("--HEAD") &&
          !ARGV.include?("--fast") &&
          satisfied_requirements?(formula, :devel)
+        test "brew", "uninstall", "--force", formula_name if formula.installed?
+
         test "brew", "fetch", "--retry", "--devel", *fetch_args
 
         test "brew", "install", "--devel", "--only-dependencies", formula_name, *shared_install_args,
@@ -986,6 +984,10 @@ module Homebrew
           cleanup_bottle_etc_var(formula)
           test "brew", "uninstall", "--devel", "--force", formula_name
         end
+      end
+
+      unless @all_formulae_dependencies.include?(formula_name)
+        test "brew", "uninstall", "--force", formula_name
       end
 
       return if @unchanged_dependencies.empty?
@@ -1233,6 +1235,7 @@ module Homebrew
 
     def formulae
       changed_formulae_dependents = {}
+      @all_formulae_dependencies = []
 
       @formulae.each do |formula|
         begin
@@ -1251,6 +1254,8 @@ module Homebrew
           safe_system "brew", "tap", e.tap.name
           retry
         end
+
+        @all_formulae_dependencies += formula_dependencies
 
         unchanged_dependencies = formula_dependencies - @formulae
         changed_dependencies = formula_dependencies - unchanged_dependencies
