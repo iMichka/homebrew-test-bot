@@ -958,7 +958,6 @@ module Homebrew
 
       if formula.devel &&
          formula.stable? &&
-         OS.mac? &&
          !ARGV.include?("--HEAD") &&
          !ARGV.include?("--fast") &&
          satisfied_requirements?(formula, :devel)
