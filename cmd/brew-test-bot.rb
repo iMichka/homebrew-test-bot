@@ -413,10 +413,6 @@ module Homebrew
           Utils.popen_read("git", "-C", @repository, "rev-parse",
                                   "--short", ENV["CHANGE_TARGET"]).strip
         diff_end_sha1 = current_sha1
-      # Use CircleCI Git variables.
-      elsif ENV["CIRCLE_SHA1"]
-        diff_start_sha1 = "origin/master"
-        diff_end_sha1 = ENV["CIRCLE_SHA1"]
       # Use Azure Pipeline variables for master or branch jobs.
       elsif ENV["SYSTEM_PULLREQUEST_TARGETBRANCH"] && ENV["BUILD_SOURCEVERSION"]
         diff_start_sha1 =
@@ -435,16 +431,9 @@ module Homebrew
         diff_end_sha1 = diff_start_sha1 = current_sha1
       end
 
-      if merge_commit? diff_end_sha1
-        old_start_sha1 = diff_start_sha1
-        diff_start_sha1 = Utils.popen_read("git", "-C", @repository, "rev-parse", "#{diff_end_sha1}^1").strip
-        puts "Merge commit: #{old_start_sha1}..#{diff_start_sha1}..#{diff_end_sha1}"
-      else
-        diff_start_sha1 = Utils.popen_read("git", "-C", @repository, "merge-base",
+      diff_start_sha1 =
+        Utils.popen_read("git", "-C", @repository, "merge-base",
                                 diff_start_sha1, diff_end_sha1).strip
-      end
-
-      puts "Testing commits: #{diff_start_sha1}..#{diff_end_sha1}"
 
       # Handle no arguments being passed on the command-line
       # e.g. `brew test-bot`
