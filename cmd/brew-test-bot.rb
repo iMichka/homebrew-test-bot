@@ -946,7 +946,6 @@ module Homebrew
           test "brew", "install", "--only-dependencies", "--include-test",
                                   formula_name
           test "brew", "test", formula_name, *test_args
-          test "brew", "linkage", "--test", formula_name
         end
 
         @bottled_dependents.each do |dependent|
