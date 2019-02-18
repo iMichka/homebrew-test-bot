@@ -128,6 +128,9 @@ module Homebrew
   ].freeze
 
   def resolve_test_tap
+    puts "*********** HOMBEREW-TEST-BOT resolve_test_tap"
+    puts ARGV.value("tap")
+    puts "*********** HOMBEREW-TEST-BOT resolve_test_tap"
     if (tap = ARGV.value("tap"))
       return Tap.fetch(tap)
     end
@@ -153,7 +156,7 @@ module Homebrew
       ENV["BUILD_REPOSITORY_URI"]
     return unless git_url
 
-    url_path = git_url.sub(%r{^https?://github\.com/}, "")
+    url_path = git_url.sub(%r{^https?://.*github\.com/}, "")
                       .chomp("/")
                       .sub(/\.git$/, "")
     begin
@@ -363,23 +366,39 @@ module Homebrew
     end
 
     def diff_formulae(start_revision, end_revision, path, filter)
-      return unless @tap
+      puts "************** HOMBEREW-TEST-BOT START DIFF FORMULAE"
+      puts @tap
+      puts "************** HOMBEREW-TEST-BOT DIFF FORMULAE TAP"
+      # return unless @tap
+      puts "************** HOMBEREW-TEST-BOT DIFF FORMULAE TAP POPEN"
+      puts start_revision
+      puts end_revision
+      puts path
+      puts @repository
+      comm = "git", "-C", @repository, "diff-tree", "-r", "--name-only", "--diff-filter=#{filter}", start_revision, end_revision, "--", path
+      puts comm
       Utils.popen_read(
         "git", "-C", @repository,
                "diff-tree", "-r", "--name-only", "--diff-filter=#{filter}",
                start_revision, end_revision, "--", path
              ).lines.map do |line|
         file = Pathname.new line.chomp
+        puts "************** HOMBEREW-TEST-BOT DIFF FORMULAE FILE"
+        puts file
         next unless @tap.formula_file?(file)
         @tap.formula_file_to_name(file)
       end.compact
     end
 
     def merge_commit?(commit)
-      Utils.popen_read("git", "-C", @repository, "rev-list", "--parents", "-n1", commit).count(" ") > 1
+      a = Utils.popen_read("git", "-C", @repository, "rev-list", "--parents", "-n1", commit)
+      puts "************** HOMBEREW-TEST-BOT MERGE COMMIT XXXX"
+      puts a
+      a.count(" ") > 1
     end
 
     def download
+      puts "************** HOMBEREW-TEST-BOT DOWNLOAD STARTED"
       @category = __method__
       @start_branch = Utils.popen_read(
         "git", "-C", @repository, "symbolic-ref", "HEAD"
@@ -409,6 +428,10 @@ module Homebrew
         @hash = nil
       end
 
+      puts "************** HOMBEREW-TEST-BOT URL"
+      puts @url
+      puts "************** HOMBEREW-TEST-BOT URL"
+
       # Use Jenkins Git plugin variables for master branch jobs.
       if ENV["GIT_PREVIOUS_COMMIT"] && ENV["GIT_COMMIT"]
         diff_start_sha1 = ENV["GIT_PREVIOUS_COMMIT"]
@@ -429,6 +452,10 @@ module Homebrew
                                   "--short",
                                   ENV["SYSTEM_PULLREQUEST_TARGETBRANCH"]).strip
         diff_end_sha1 = current_sha1
+        puts "************** HOMBEREW-TEST-BOT SYSTEM_PULLREQUEST_TARGETBRANCH"
+        puts diff_start_sha1
+        puts diff_end_sha1
+        puts "************** HOMBEREW-TEST-BOT SYSTEM_PULLREQUEST_TARGETBRANCH"
       # Use CircleCI Git variables.
       elsif ENV["CIRCLE_SHA1"]
         diff_start_sha1 =
@@ -444,9 +471,14 @@ module Homebrew
         Utils.popen_read("git", "-C", @repository, "merge-base",
                                 diff_start_sha1, diff_end_sha1).strip
 
+        puts "************** HOMBEREW-TEST-BOT INTERMEDIATE DIFF SHA1"
+        puts diff_start_sha1
+        puts "************** HOMBEREW-TEST-BOT INTERMEDIATE DIFF SHA1"
+
       # Handle no arguments being passed on the command-line
       # e.g. `brew test-bot`
       if @hash == "HEAD"
+        puts "************** HOMBEREW-TEST-BOT HEAD"
         diff_commit_count = Utils.popen_read(
           "git", "-C", @repository, "rev-list", "--count",
           "#{diff_start_sha1}..#{diff_end_sha1}"
@@ -460,11 +492,13 @@ module Homebrew
       # Handle formulae arguments being passed on the command-line
       # e.g. `brew test-bot wget fish`
       elsif !@formulae.empty?
+        puts "************** HOMBEREW-TEST-BOT @formulae.empty?"
         @name = "#{@formulae.first}-#{diff_end_sha1}"
         diff_start_sha1 = diff_end_sha1
       # Handle a hash being passed on the command-line
       # e.g. `brew test-bot 1a2b3c`
       elsif @hash
+        puts "************** HOMBEREW-TEST-BOT @hash"
         test "git", "-C", @repository, "checkout", @hash
         diff_start_sha1 = "#{@hash}^"
         diff_end_sha1 = @hash
@@ -473,6 +507,7 @@ module Homebrew
       # environment variables e.g.
       # `brew test-bot https://github.com/Homebrew/homebrew-core/pull/678`
       elsif @url
+        puts "************** HOMBEREW-TEST-BOT @url"
         unless ARGV.include?("--no-pull")
           diff_start_sha1 = current_sha1
           test "brew", "pull", "--clean", @url
@@ -535,6 +570,11 @@ module Homebrew
         puts "#{@tap} HEAD #{tap_revision}"
       end
 
+      puts "************** HOMBEREW-TEST-BOT diff_start_sha1 == diff_end_sha1"
+      puts diff_start_sha1
+      puts diff_end_sha1
+      puts diff_start_sha1 == diff_end_sha1
+      puts "************** HOMBEREW-TEST-BOT diff_start_sha1 == diff_end_sha1"
       return if diff_start_sha1 == diff_end_sha1
       return if @url && steps.last && !steps.last.passed?
 
@@ -542,14 +582,16 @@ module Homebrew
         formula_path = @tap.formula_dir.to_s
         @added_formulae +=
           diff_formulae(diff_start_sha1, diff_end_sha1, formula_path, "A")
-        if merge_commit? diff_end_sha1
-          # Test formulae whose bottles were updated.
-          summaries = Utils.popen_read("git", "-C", @repository, "log", "--pretty=%s", "#{diff_start_sha1}..#{diff_end_sha1}").lines
-          @modified_formulae = summaries.map { |s| s[/^([^:]+): update .* bottle\.$/, 1] }.compact.uniq
-        else
-          @modified_formulae +=
-            diff_formulae(diff_start_sha1, diff_end_sha1, formula_path, "M")
-        end
+        puts "************** HOMBEREW-TEST-BOT CHECK !!!!"
+        puts merge_commit? diff_end_sha1
+        #if merge_commit? diff_end_sha1
+        #  # Test formulae whose bottles were updated.
+        #  summaries = Utils.popen_read("git", "-C", @repository, "log", "--pretty=%s", "#{diff_start_sha1}..#{diff_end_sha1}").lines
+        #  @modified_formulae = summaries.map { |s| s[/^([^:]+): update .* bottle\.$/, 1] }.compact.uniq
+        #else
+        @modified_formulae +=
+          diff_formulae(diff_start_sha1, diff_end_sha1, formula_path, "M")
+        #end
         @deleted_formulae +=
           diff_formulae(diff_start_sha1, diff_end_sha1, formula_path, "D")
       elsif @formulae.empty? && ARGV.include?("--test-default-formula")
@@ -561,6 +603,9 @@ module Homebrew
       @formulae += @added_formulae + @modified_formulae
       @test_brew = (!@tap || @test_bot_tap) &&
                    (@formulae.empty? || @test_default_formula)
+      puts "************** HOMBEREW-TEST-BOT FORMULAE"
+      puts @formulae
+      puts "************** HOMBEREW-TEST-BOT DOWNLOAD ENDED"
     end
 
     def skip(formula_name)
@@ -999,6 +1044,7 @@ module Homebrew
     end
 
     def homebrew
+      puts "HOMBEREW-TEST-BOT HOMEBREW STARTED"
       @category = __method__
       return if @skip_homebrew
 
@@ -1039,6 +1085,7 @@ module Homebrew
       elsif @tap
         test "brew", "readall", "--aliases", @tap.name
       end
+      puts "HOMBEREW-TEST-BOT HOMEBREW ENDED"
     end
 
     def cleanup_git_meta(repository)
@@ -1667,6 +1714,9 @@ module Homebrew
     skip_cleanup_before = false
     if ARGV.named.empty?
       # With no arguments just build the most recent commit.
+      puts "********** HOMEBREW-TEST-BOT RUN test_bot"
+      puts tap
+      puts "********** HOMEBREW-TEST-BOT RUN test_bot"
       current_test = Test.new("HEAD", tap:                 tap,
                                       skip_setup:          skip_setup,
                                       skip_homebrew:       skip_homebrew,
