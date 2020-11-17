@@ -584,6 +584,8 @@ module Homebrew
         livecheck_args << "--full-name"
         livecheck_args << "--debug"
 
+        info_header "TEST 1"
+
         new_formula = @added_formulae.include?(formula_name)
         audit_args = [formula_name, "--online"]
         if new_formula
@@ -596,6 +598,8 @@ module Homebrew
           fetch_formula(fetch_args, audit_args)
           return
         end
+
+        info_header "TEST 2"
 
         deps |= formula.deps.to_a.reject(&:optional?)
         reqs |= formula.requirements.to_a.reject(&:optional?)
