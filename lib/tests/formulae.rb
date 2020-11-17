@@ -566,12 +566,16 @@ module Homebrew
 
         @built_formulae << formula_name
 
+        info_header "TEST 1"
+
         formula = Formulary.factory(formula_name)
         if formula.disabled?
           ofail "#{formula.full_name} has been disabled!"
           skip formula.name
           return
         end
+
+        info_header "TEST 2"
 
         deps = []
         reqs = []
@@ -584,7 +588,7 @@ module Homebrew
         livecheck_args << "--full-name"
         livecheck_args << "--debug"
 
-        info_header "TEST 1"
+        info_header "TEST 3"
 
         new_formula = @added_formulae.include?(formula_name)
         audit_args = [formula_name, "--online"]
@@ -599,7 +603,7 @@ module Homebrew
           return
         end
 
-        info_header "TEST 2"
+        info_header "TEST 4"
 
         deps |= formula.deps.to_a.reject(&:optional?)
         reqs |= formula.requirements.to_a.reject(&:optional?)
